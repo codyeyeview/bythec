@@ -24,6 +24,11 @@
 #include <event.h>
 #include <signal.h>
 
+#include <evhttp.h>
+#include <event2/event.h>
+#include <event2/http.h>
+#include <event2/bufferevent.h>
+
 #include "workqueue.h"
 
 /* Port to listen on. */
@@ -112,6 +117,34 @@ static void closeAndFreeClient(client_t *client) {
 	}
 }
 
+void http_request_done(struct evhttp_request *req, void *arg){
+    char buf[1024];
+    int s = evbuffer_remove(req->input_buffer, &buf, sizeof(buf) - 1);
+    buf[s] = '\0';
+    printf("response: %s", buf);
+    // terminate event_base_dispatch()
+    event_base_loopbreak((struct event_base *)arg);
+}
+
+void remote_connection(){
+	printf("remote connection\n");
+    struct event_base *base;
+    struct evhttp_connection *conn;
+    struct evhttp_request *req;
+
+    base = event_base_new();
+    printf("connecting...\n");
+    conn = evhttp_connection_base_new(base, NULL, "54.174.214.224", 15120);*/
+    /*conn = evhttp_connection_base_new(base, NULL, "127.0.0.1", 80);*/
+    req = evhttp_request_new(http_request_done, base);
+
+    evhttp_add_header(req->output_headers, "Host", "localhost");
+    //evhttp_add_header(req->output_headers, "Connection", "close");
+
+    evhttp_make_request(conn, req, EVHTTP_REQ_GET, "/adap");
+    evhttp_connection_set_timeout(req->evcon, 90);
+    event_base_dispatch(base);
+}
 /**
  * Called by libevent when there is data to read.
  */
@@ -120,7 +153,9 @@ void buffered_on_read(struct bufferevent *bev, void *arg) {
 	char data[4096];
 	int nbytes;
 	char *p = "abc";
-
+	printf("buffered on read ......\n");
+	remote_connection();
+	printf("after remote connection\n");
 	/* Copy the data from the input buffer to the output buffer in 4096-byte chunks.
 	 * There is a one-liner to do the whole thing in one shot, but the purpose of this server
 	 * is to show actual real-world reading and writing of the input and output buffers,
