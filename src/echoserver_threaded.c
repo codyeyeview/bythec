@@ -31,8 +31,8 @@
 /* Connection backlog (# of backlogged connections to accept). */
 #define CONNECTION_BACKLOG 8
 /* Socket read and write timeouts, in seconds. */
-#define SOCKET_READ_TIMEOUT_SECONDS 1
-#define SOCKET_WRITE_TIMEOUT_SECONDS 1
+#define SOCKET_READ_TIMEOUT_SECONDS 90
+#define SOCKET_WRITE_TIMEOUT_SECONDS 90
 /* Number of worker threads.  Should match number of CPU cores reported in /proc/cpuinfo. */
 #define NUM_THREADS 3
 
@@ -252,6 +252,7 @@ void on_accept(int fd, short ev, void *arg) {
 
 	bufferevent_settimeout(client->buf_ev, SOCKET_READ_TIMEOUT_SECONDS,
 	SOCKET_WRITE_TIMEOUT_SECONDS);
+	bufferevent_socket_new();
 
 	/* We have to enable it before our callbacks will be
 	 * called. */
