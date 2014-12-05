@@ -134,7 +134,7 @@ void remote_connection(){
 
     base = event_base_new();
     printf("connecting...\n");
-    conn = evhttp_connection_base_new(base, NULL, "54.174.214.224", 15120);*/
+    conn = evhttp_connection_base_new(base, NULL, "54.174.214.224", 15120);
     /*conn = evhttp_connection_base_new(base, NULL, "127.0.0.1", 80);*/
     req = evhttp_request_new(http_request_done, base);
 
@@ -287,7 +287,6 @@ void on_accept(int fd, short ev, void *arg) {
 
 	bufferevent_settimeout(client->buf_ev, SOCKET_READ_TIMEOUT_SECONDS,
 	SOCKET_WRITE_TIMEOUT_SECONDS);
-	bufferevent_socket_new();
 
 	/* We have to enable it before our callbacks will be
 	 * called. */
