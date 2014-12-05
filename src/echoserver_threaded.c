@@ -215,8 +215,8 @@ void buffered_on_error(struct bufferevent *bev, short what, void *arg) {
 
 static void server_job_function(struct job *job) {
 	client_t *client = (client_t *) job->user_data;
-
-	printf("data %d", client->fd);
+    printf("server job function....");
+	/*printf("data %d", client->fd);*/
 	event_base_dispatch(client->evbase);
 	closeAndFreeClient(client);
 	free(job);
@@ -234,6 +234,7 @@ void on_accept(int fd, short ev, void *arg) {
 	client_t *client;
 	job_t *job;
 
+	printf("on_accept");
 	client_fd = accept(fd, (struct sockaddr *) &client_addr, &client_len);
 	if (client_fd < 0) {
 		warn("accept failed");
@@ -317,7 +318,7 @@ void on_accept(int fd, short ev, void *arg) {
 	}
 	job->job_function = server_job_function;
 	job->user_data = client;
-
+	printf("before workqueue add job \n");
 	workqueue_add_job(workqueue, job);
 }
 
@@ -367,6 +368,7 @@ int runServer(void) {
 		err(1, "failed to set server socket to non-blocking");
 	}
 
+	printf("before accept\n");
 	if ((evbase_accept = event_base_new()) == NULL) {
 		perror("Unable to create socket accept event base");
 		close(listenfd);
@@ -425,6 +427,6 @@ static void sighandler(int signal) {
 /* Main function for demonstrating the echo server.
  * You can remove this and simply call runServer() from your application. */
 int main(int argc, char *argv[]) {
-	printf("hello");
+	printf("hello\n");
 	return runServer();
 }
