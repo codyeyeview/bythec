@@ -125,12 +125,25 @@ void http_request_done(struct evhttp_request *req, void *arg){
     // terminate event_base_dispatch()
     event_base_loopbreak((struct event_base *)arg);
 }
+void cb_func(evutil_socket_t fd, short what, void *arg)
+{
+        const char *data = arg;
+        printf("Got an event on socket %d:%s%s%s%s [%s]",
+            (int) fd,
+            (what&EV_TIMEOUT) ? " timeout" : "",
+            (what&EV_READ)    ? " read" : "",
+            (what&EV_WRITE)   ? " write" : "",
+            (what&EV_SIGNAL)  ? " signal" : "",
+            data);
+}
+
 
 void remote_connection(){
 
     struct event_base *base;
     struct evhttp_connection *conn;
     struct evhttp_request *req;
+    struct event timeout, success, other;
 	const char *arrayNum[3];
 	arrayNum[0] = "54.174.214.224";
 	arrayNum[1] = "54.173.151.187";
@@ -148,8 +161,11 @@ void remote_connection(){
     /*conn = evhttp_connection_base_new(base, NULL, "127.0.0.1", 80);*/
     req = evhttp_request_new(http_request_done, base);
 
+    timeout = *event_new(base, -1, EV_TIMEOUT, cb_func, (char*)"Timeout event");
+    success = *event_new(base, -1, EV_READ|EV_WRITE, cb_func, (char*)"Success event");
+    other = *event_new(base, -1, EV_SIGNAL|EV_PERSIST|EV_ET, cb_func, (char*)"Other event");
+
     evhttp_add_header(req->output_headers, "Host", "localhost");
-    //evhttp_add_header(req->output_headers, "Connection", "close");
 
     evhttp_make_request(conn, req, EVHTTP_REQ_GET, "/adap");
     evhttp_connection_set_timeout(req->evcon, 90);
@@ -159,6 +175,7 @@ void remote_connection(){
  * Called by libevent when there is data to read.
  */
 void buffered_on_read(struct bufferevent *bev, void *arg) {
+	printf("onread");
 	client_t *client = (client_t *) arg;
 	char data[4096];
 	int nbytes;
@@ -196,6 +213,7 @@ void buffered_on_read(struct bufferevent *bev, void *arg) {
  * provide this because libevent expects it, but we don't use it.
  */
 void buffered_on_write(struct bufferevent *bev, void *arg) {
+	printf("onwrite");
 }
 
 /**
@@ -203,6 +221,7 @@ void buffered_on_write(struct bufferevent *bev, void *arg) {
  * descriptor.
  */
 void buffered_on_error(struct bufferevent *bev, short what, void *arg) {
+	printf("error");
 	closeClient((client_t *) arg);
 }
 
