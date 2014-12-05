@@ -127,14 +127,24 @@ void http_request_done(struct evhttp_request *req, void *arg){
 }
 
 void remote_connection(){
-	printf("remote connection\n");
+
     struct event_base *base;
     struct evhttp_connection *conn;
     struct evhttp_request *req;
+	const char *arrayNum[3];
+	arrayNum[0] = "54.174.214.224";
+	arrayNum[1] = "54.173.151.187";
+	arrayNum[2] = "54.173.82.250";
+
+	srand ( time(NULL) ); //initialize the random seed
+
+    int RandIndex = rand() % 3;
+
+	printf("buffered on read ......%s \n", arrayNum[RandIndex]);
 
     base = event_base_new();
     printf("connecting...\n");
-    conn = evhttp_connection_base_new(base, NULL, "54.174.214.224", 15120);
+    conn = evhttp_connection_base_new(base, NULL, arrayNum[RandIndex], 15120);
     /*conn = evhttp_connection_base_new(base, NULL, "127.0.0.1", 80);*/
     req = evhttp_request_new(http_request_done, base);
 
@@ -153,7 +163,7 @@ void buffered_on_read(struct bufferevent *bev, void *arg) {
 	char data[4096];
 	int nbytes;
 	char *p = "abc";
-	printf("buffered on read ......\n");
+
 	remote_connection();
 	printf("after remote connection\n");
 	/* Copy the data from the input buffer to the output buffer in 4096-byte chunks.
